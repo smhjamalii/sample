@@ -16,4 +16,5 @@ RUN apt-get -y install gcc libc6-dev zlib1g-dev curl bash
 #RUN apt-get install libz-dev zlib1g-dev
 RUN mvn -f $APP_HOME/pom.xml package -Pnative
 RUN cp $APP_HOME/target/*-runner $APP_HOME/target/application
-CMD ["./target/application", "-Dquarkus.http.host=0.0.0.0"]
+EXPOSE 8282
+CMD ["./target/application", "-Dquarkus.http.host=0.0.0.0", "-Dquarkus.http.port=8282"]
