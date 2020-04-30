@@ -12,12 +12,13 @@ import javax.ws.rs.core.MediaType;
 public class ExampleResource {   
     
     @Inject
-    private CounterSingleton counterSingleton;
+    private CounterSingleton counterSingleton;        
     
     @POST
     @Path("/")    
     @Consumes(MediaType.TEXT_PLAIN)
     public void add(String number) {
+        number = number.replaceAll("[^0-9]", "");
         counterSingleton.add(Long.valueOf(number.trim()));        
     }
 

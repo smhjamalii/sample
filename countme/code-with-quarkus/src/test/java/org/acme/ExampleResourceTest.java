@@ -20,7 +20,6 @@ public class ExampleResourceTest {
                     encoderConfig().defaultCharsetForContentType("UTF-8", "text/plain")
                 );
         
-        for (int i = 0; i < 4500; i++){
             given()          
               .contentType(ContentType.TEXT)                
               .body("1")          
@@ -28,13 +27,20 @@ public class ExampleResourceTest {
               .then()
                  .statusCode(204)
                  .body(is(""));
-        }
+            
+            given()          
+              .contentType(ContentType.TEXT)                
+              .body("1 0")          
+              .post("/")                
+              .then()
+                 .statusCode(204)
+                 .body(is(""));            
         
         given()
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("4500"));        
+             .body(is("11"));        
     }
 
     @Test    
@@ -43,7 +49,7 @@ public class ExampleResourceTest {
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("4500"));
+             .body(is("11"));
     }    
     
 }
