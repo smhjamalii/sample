@@ -12,11 +12,11 @@ import javax.ws.rs.core.MediaType;
 public class ExampleResource {   
     
     @Inject
-    private CounterSingleton counterSingleton;        
+    CounterSingleton counterSingleton;        
     
     @POST
     @Path("/")    
-    @Consumes(MediaType.TEXT_PLAIN)
+    @Consumes(value = {MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
     public void add(String number) {
         number = number.replaceAll("[^0-9]", "");
         counterSingleton.add(Long.valueOf(number.trim()));        
@@ -24,7 +24,7 @@ public class ExampleResource {
 
     @GET
     @Path("count")
-    @Produces(MediaType.TEXT_PLAIN)    
+    @Produces(value = {MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})    
     public String getCount() {        
         return String.valueOf(counterSingleton.getCount());
     }
