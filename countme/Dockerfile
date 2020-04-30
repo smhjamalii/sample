@@ -1,1 +1,1 @@
-FROM smhjamalii/soallpeach-quarkus-native:latest
+FROM smhjamalii/soalpeach-countme:latest
