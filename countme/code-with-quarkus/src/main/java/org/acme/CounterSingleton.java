@@ -5,28 +5,28 @@
  */
 package org.acme;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
+import javax.enterprise.context.ApplicationScoped;
 
 /**
  *
  * @author mohammad
  */
-public class CounterSingleton {
+@ApplicationScoped
+public class CounterSingleton implements Serializable {
     
-    private AtomicInteger count = new AtomicInteger(0);    
+    private AtomicLong count;
     
-    private CounterSingleton() {
+    public CounterSingleton() {
+         count = new AtomicLong(0);    
+    }   
+    
+    public Long getCount(){
+        return count.get();
     }
     
-    public static CounterSingleton getInstance() {
-        return CounterSingletonHolder.INSTANCE;
-    }
-    
-    private static class CounterSingletonHolder {
-        private static final CounterSingleton INSTANCE = new CounterSingleton();
-    }
-    
-    public AtomicInteger getCount(){
-        return count;
+    public void add(Long number){
+        count.addAndGet(number);
     }
 }
