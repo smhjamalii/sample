@@ -19,7 +19,7 @@ public class CounterSingleton implements Serializable {
     private AtomicLong count;
     
     public CounterSingleton() {
-         count = new AtomicLong(0);    
+        count = new AtomicLong(0);
     }   
     
     public Long getCount(){
@@ -27,6 +27,6 @@ public class CounterSingleton implements Serializable {
     }
     
     public void add(Long number){
-        count.addAndGet(number);
+        count.set(count.get() + number);
     }
 }

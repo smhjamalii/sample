@@ -8,15 +8,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Path("/")
+@Path("/")    
 public class ExampleResource {   
     
     @Inject
     CounterSingleton counterSingleton;        
     
-    @POST
-    @Path("/")    
-    @Consumes(value = {MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON})
+    @POST    
+    @Consumes(value = {
+        MediaType.APPLICATION_FORM_URLENCODED, 
+        MediaType.TEXT_PLAIN, 
+        MediaType.APPLICATION_JSON})
     public void add(String number) {
         number = number.replaceAll("[^0-9]", "");
         counterSingleton.add(Long.valueOf(number.trim()));        
