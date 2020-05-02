@@ -20,7 +20,7 @@ public class ExampleResourceTest {
                     encoderConfig().defaultCharsetForContentType("UTF-8", "text/plain")
                 );
         
-        for(int i = 0; i < 100000; i++){
+        for(int i = 0; i < 100; i++){
             given()                        
               .body("1")          
               .post("/");
@@ -34,7 +34,7 @@ public class ExampleResourceTest {
             }
         }
         
-        for(int i = 0; i < 100000; i++){
+        for(int i = 0; i < 100; i++){
             given()                        
               .body("1")          
               .post("/");
