@@ -53,7 +53,7 @@ public class ExampleResourceTest {
               .body("1 0")          
               .post("/")                
               .then()
-                 .statusCode(204)
+                 .statusCode(200)
                  .body(is(""));            
         
             System.out.println(new Date());
