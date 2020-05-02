@@ -1,0 +1,9 @@
+FROM smhjamalii/ubuntu-graalvm-maven:latest
+WORKDIR /usr/app/
+ENV APP_HOME="/usr/app/"
+COPY code-with-quarkus/src $APP_HOME/src
+COPY code-with-quarkus/pom.xml $APP_HOME/
+RUN mvn -f $APP_HOME/pom.xml package -Pnative
+RUN cp $APP_HOME/target/*-runner $APP_HOME/target/application
+EXPOSE 80
+CMD ["./target/application", "-Dquarkus.http.host=0.0.0.0", "-Dquarkus.http.port=80"]

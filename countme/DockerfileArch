@@ -1,0 +1,17 @@
+FROM archlinux:latest
+RUN curl -L -k -H "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_1) AppleWebKit/537.36 (K HTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"  https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.0.0/graalvm-ce-java11-linux-aarch64-20.0.0.tar.gz -o graalvm-ce-java11-linux-aarch64-20.0.0.tar.gz
+RUN mkdir /home/graalvm
+RUN tar xzf graalvm-ce-java11-linux-aarch64-20.0.0.tar.gz -C /opt/graalvm --strip-components 1
+RUN rm graalvm-ce-java11-linux-aarch64-20.0.0.tar.gz
+ENV GRAALVM_HOME=/home/graalvm
+ENV JAVA_HOME=$GRAALVM_HOME
+ENV PATH=$PATH:$JAVA_HOME/bin
+
+#RUN gu install native-image
+RUN curl https://ftp-stud.hs-esslingen.de/pub/Mirrors/ftp.apache.org/dist/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -o apache-maven-3.6.3-bin.tar.gz
+RUN mkdir /home/maven
+RUN tar -xzf apache-maven-3.6.3-bin.tar.gz -C /opt/maven --strip-components 1
+RUN rm apache-maven-3.6.3-bin.tar.gz
+ENV MAVEN_HOME=/home/maven
+ENV PATH=$PATH:$MAVEN_HOME/bin
+
