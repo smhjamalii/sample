@@ -62,7 +62,7 @@ public class ExampleResourceTest {
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("200010"));        
+             .body(is("210"));        
         
         System.out.println(new Date());
     }
@@ -73,7 +73,7 @@ public class ExampleResourceTest {
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("200010"));
+             .body(is("210"));
     }    
     
 }
