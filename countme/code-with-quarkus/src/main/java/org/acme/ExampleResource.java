@@ -4,6 +4,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 
 @Path("/")    
 public class ExampleResource {   
@@ -12,9 +13,14 @@ public class ExampleResource {
     CounterSingleton counterSingleton;        
     
     @POST    
-    public void add(String number) {
-        number = number.replaceAll("[^0-9]", "");
-        counterSingleton.add(Long.valueOf(number.trim()));        
+    public Response add(String number) {
+        try{
+            number = number.replaceAll("[^0-9]", "");
+            counterSingleton.add(Long.valueOf(number.trim()));
+            return Response.ok().build();
+        } catch(Exception e) {
+            return Response.status(400).build();
+        }
     }
 
     @GET
