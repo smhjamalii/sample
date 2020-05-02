@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 public class ExampleResource {   
     
     @Inject
-    CounterSingleton counterSingleton;        
+    CounterSingletonWithThreadPool counterSingleton;        
     
     @POST    
     public Response add(String number) {
