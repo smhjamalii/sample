@@ -24,7 +24,12 @@ public class CallableCalculator implements Callable<Long> {
     public Long call() throws Exception {        
         if(numbers != null && ! numbers.isEmpty()){                                    
             //return numbers.stream().parallel().reduce(0L, Long::sum);
-            return numbers.stream().reduce(0L, Long::sum);
+            //return numbers.stream().reduce(0L, Long::sum);
+            Long count = 0L;
+            for(Long num : numbers){
+                count += num;
+            }
+            return count;
         } else {
             return 0L;
         }
