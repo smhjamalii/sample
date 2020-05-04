@@ -23,7 +23,8 @@ public class CallableCalculator implements Callable<Long> {
     @Override
     public Long call() throws Exception {        
         if(numbers != null && ! numbers.isEmpty()){                                    
-            return numbers.stream().parallel().reduce(0L, Long::sum);
+            //return numbers.stream().parallel().reduce(0L, Long::sum);
+            return numbers.stream().reduce(0L, Long::sum);
         } else {
             return 0L;
         }
