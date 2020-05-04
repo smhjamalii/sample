@@ -14,16 +14,16 @@ import java.util.concurrent.Callable;
  */
 public class CallableCalculator implements Callable<Long> {
 
-    private List<Long> numbers;
-
+    private List<Long> numbers;        
+    
     public CallableCalculator(List<Long> numbers) {
-        this.numbers = numbers;
+        this.numbers = numbers;        
     }
                     
     @Override
     public Long call() throws Exception {        
-        if(numbers != null && ! numbers.isEmpty()){
-            return numbers.stream().parallel().reduce(0L, Long::sum);        
+        if(numbers != null && ! numbers.isEmpty()){                                    
+            return numbers.stream().reduce(0L, Long::sum);
         } else {
             return 0L;
         }

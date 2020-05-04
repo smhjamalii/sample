@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -32,14 +33,13 @@ public class CounterSingletonWithThreadPool implements Serializable {
     private LinkedBlockingDeque<Future<Long>> futureDeque;    
     private long idleTime = 0;
     private ExecutorService es;
-    private ScheduledExecutorService ses;  
-    
+    private ScheduledExecutorService ses;      
     private volatile int index;
     
     public CounterSingletonWithThreadPool() {
         
         es = Executors.newFixedThreadPool(3);        
-        ses = Executors.newScheduledThreadPool(3);        
+        ses = Executors.newScheduledThreadPool(3);                
         
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
@@ -59,11 +59,13 @@ public class CounterSingletonWithThreadPool implements Serializable {
         queue.peek().add(number);        
         index++;
     }
-    
+    int i = 0;
     private void createChunk(){        
-        while(index > checkpoint){    
+        while(index > checkpoint){               
             queue.offer(new LinkedList<>());
             List<Long> chunck = new ArrayList<>(queue.poll());            
+            i+=chunck.size();
+//            System.out.println("total: " + i + " chunk size: " + chunck.size() + " index: " + index + " checkpoint: " + checkpoint);
             calculate(chunck);
             checkpoint = index + 1;            
         }
@@ -83,7 +85,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
         }
     }
     
-    private void calculate(List<Long> list) {        
+    private void calculate(List<Long> list) {                
         futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
     }
     
@@ -105,6 +107,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
             }
             if(idleTime > 5) {                                
                 try {                    
+                    ses.shutdown();
                     es.shutdown();                    
                     es.awaitTermination(1, TimeUnit.HOURS);
                 } catch (InterruptedException ex) {
