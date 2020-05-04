@@ -1,12 +1,19 @@
 package org.acme;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
@@ -18,55 +25,71 @@ import javax.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class CounterSingletonWithThreadPool implements Serializable {
     
-    private static final Long DEFAULT_RPS = 100L;
-    
-    private Long count;
-    private LinkedBlockingQueue<List<Long>> queue;    
-    private long index = 1;
-    private long enqueueIndex = 1;
-    private long rps = DEFAULT_RPS;
+    private static final int DEFAULT_RPS = 100;         
+    private AtomicLong count;    
+    private int checkpoint = 0;
+    private ConcurrentLinkedQueue<LinkedList<Long>> queue;
+    private LinkedBlockingDeque<Future<Long>> futureDeque;    
     private long idleTime = 0;
-    private ExecutorService es;        
+    private ExecutorService es;
+    private ScheduledExecutorService ses;  
+    
+    private volatile int index;
     
     public CounterSingletonWithThreadPool() {
-        count = 0L;
-        queue = new LinkedBlockingQueue<>();
-        es = Executors.newCachedThreadPool();        
+        
+        es = Executors.newFixedThreadPool(3);        
+        ses = Executors.newScheduledThreadPool(3);        
+        
+        count = new AtomicLong(0L);                      
+        futureDeque = new LinkedBlockingDeque<>();
+        queue = new ConcurrentLinkedQueue<>();
         queue.offer(new LinkedList<>());
-        new Thread(() -> adjustRps()).start();
+        ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 1000, TimeUnit.MILLISECONDS);
+        ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 1050, TimeUnit.MILLISECONDS);        
+        
+        new Thread(() -> adjustRps()).start();        
     }   
     
-    public Long getCount(){        
-        while(! queue.isEmpty()){
-            es.submit(() -> {
-                calculate(queue.poll());
-            });                
-        }            
-        return count;
-    }
+    public Long getCount(){         
+        return count.get();        
+    }        
     
     public void add(Long number){
-        if(! queue.isEmpty()){
-            queue.offer(new LinkedList<>());
-        }
         queue.peek().add(number);        
-        index++;        
-        if ((index - enqueueIndex) % rps == 0){
-            queue.offer(new LinkedList<>());            
-            enqueueIndex = index;
-            es.execute(() -> {
-                calculate(queue.poll());          
-            });            
+        index++;
+    }
+    
+    private void createChunk(){        
+        while(index > checkpoint){    
+            queue.offer(new LinkedList<>());
+            List<Long> chunck = new ArrayList<>(queue.poll());            
+            calculate(chunck);
+            checkpoint = index + 1;            
         }
     }
     
-    private void calculate(List<Long> list){
-        count += list.stream().reduce(0L, Long::sum);
+    private void sumUp() {        
+        while(! futureDeque.isEmpty() || ! es.isTerminated()){
+            try {
+                if(! futureDeque.isEmpty()){
+                    count.set(count.get() + futureDeque.poll().get());
+                }
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    private void calculate(List<Long> list) {        
+        futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
     }
     
     private void adjustRps(){
-        long indexAtStart = 0;
-        long indexAtEnd = DEFAULT_RPS;
+        int indexAtStart = 0;
+        int indexAtEnd = DEFAULT_RPS;
         while(true) {        
             indexAtStart = index;
             try {
@@ -75,25 +98,14 @@ public class CounterSingletonWithThreadPool implements Serializable {
                 Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
             }
             indexAtEnd = index; 
-            if(indexAtEnd - indexAtStart > DEFAULT_RPS){
-                long rpsCandiate = indexAtEnd - indexAtStart;
-                long newRps = 1;
-                while (rpsCandiate >= DEFAULT_RPS){
-                    newRps *= 10;
-                    rpsCandiate = rpsCandiate / 10;
-                }
-                if(rpsCandiate > 0){
-                    rps = newRps * rpsCandiate;
-                }
-            }
             if(indexAtEnd - indexAtStart == 0) {
                 idleTime++;
             } else {
                 idleTime = 0;
             }
             if(idleTime > 5) {                                
-                try {
-                    es.shutdown();
+                try {                    
+                    es.shutdown();                    
                     es.awaitTermination(1, TimeUnit.HOURS);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);

@@ -19,7 +19,8 @@ public class ExampleResource {
             counterSingleton.add(Long.valueOf(number.trim()));
             return Response.ok().build();
         } catch(Exception e) {
-            return Response.status(400).build();
+            // halle boro
+            return Response.ok().build();
         }
     }
 
