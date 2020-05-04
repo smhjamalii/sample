@@ -38,14 +38,14 @@ public class CounterSingletonWithThreadPool implements Serializable {
     
     public CounterSingletonWithThreadPool() {
         
-        es = Executors.newFixedThreadPool(3);        
-        ses = Executors.newScheduledThreadPool(3);                
+        es = Executors.newFixedThreadPool(2);        
+        ses = Executors.newScheduledThreadPool(4);                
         
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
         queue = new ConcurrentLinkedQueue<>();        
-        ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 300, TimeUnit.MILLISECONDS);
-        ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 600, TimeUnit.MILLISECONDS);        
+        ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 50, TimeUnit.MILLISECONDS);
+        ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
         ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 10000, TimeUnit.MILLISECONDS);                
     }   
     
@@ -53,37 +53,44 @@ public class CounterSingletonWithThreadPool implements Serializable {
         return count.get();        
     }        
     
+    List<String> chunk = new LinkedList<>();    
     public void add(String number){
-        queue.offer(number);        
-        index++;
-    }
-    
-    private void createChunk(){        
-        while(! queue.isEmpty()){            
-            List<String> partialSums = new LinkedList<>();
-            for(int i = 0; i<950; i++){
-                String n = queue.poll();
-                if(n!=null){
-                    partialSums.add(n);
-                } else break;
-            }
-            calculate(new ArrayList<>(partialSums));        
+        chunk.add(number);        
+        index++;        
+        if(chunk.size()>=10){
+            calculate(new ArrayList<>(chunk));
+            chunk = new LinkedList<>();
         }
     }
     
-    private void sumUp() {                
-        try {
-            while(! futureDeque.isEmpty()){                
-                count.set(count.get() + futureDeque.poll().get());
-            }
-        } catch (InterruptedException ex) {
-            Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ExecutionException ex) {
-            Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+    int chunkIndex;    
+    private void finalCalculation(){                                        
+        if(chunkIndex == index && chunk != null && chunk.size() > 0) {
+            System.out.println("Final Calculation is done.");
+            calculate(new ArrayList<>(chunk));
+            chunk = null;            
         }                
+        chunkIndex = index;                
     }
     
+    int sumRunCount = 0;
+    private void sumUp() {                
+        sumRunCount++;
+        if(! futureDeque.isEmpty()){
+            try {
+                count.set(count.get() + futureDeque.poll().get());
+            } catch (InterruptedException ex) {
+                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ExecutionException ex) {
+                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+            }                
+        }
+    }
+    
+    int calculateRunCount = 0;    
     private void calculate(List<String> list) {                
+        calculateRunCount++;
+        //System.out.println("Calc: " + calculateRunCount);
         futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
     }
     
