@@ -46,7 +46,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
         queue = new ConcurrentLinkedQueue<>();        
         ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 1000, TimeUnit.MILLISECONDS);
         ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 1050, TimeUnit.MILLISECONDS);        
-        //ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 3000, TimeUnit.MILLISECONDS);                
+        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 3000, TimeUnit.MILLISECONDS);                
     }   
     
     public Long getCount(){         
@@ -89,7 +89,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
     
     int lastIndex = 0;
     private void adjustRps(){
-        if(index == lastIndex){
+        if(index == lastIndex && queue.isEmpty() && futureDeque.isEmpty()){
             ses.shutdown();
             es.shutdown();                    
             try {
