@@ -29,7 +29,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
     private static final int DEFAULT_RPS = 100;         
     private AtomicLong count;    
     private int checkpoint = 0;
-    private ConcurrentLinkedQueue<LinkedList<Long>> queue;
+    private ConcurrentLinkedQueue<Long> queue;
     private LinkedBlockingDeque<Future<Long>> futureDeque;    
     private long idleTime = 0;
     private ExecutorService es;
@@ -43,12 +43,10 @@ public class CounterSingletonWithThreadPool implements Serializable {
         
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
-        queue = new ConcurrentLinkedQueue<>();
-        queue.offer(new LinkedList<>());
+        queue = new ConcurrentLinkedQueue<>();        
         ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 1000, TimeUnit.MILLISECONDS);
         ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 1050, TimeUnit.MILLISECONDS);        
-        
-        new Thread(() -> adjustRps()).start();        
+        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 3000, TimeUnit.MILLISECONDS);                
     }   
     
     public Long getCount(){         
@@ -56,65 +54,50 @@ public class CounterSingletonWithThreadPool implements Serializable {
     }        
     
     public void add(Long number){
-        queue.peek().add(number);        
+        queue.offer(number);        
         index++;
     }
-    int i = 0;
-    private void createChunk(){        
-        while(index > checkpoint){               
-            queue.offer(new LinkedList<>());
-            List<Long> chunck = new ArrayList<>(queue.poll());            
-            i+=chunck.size();
-//            System.out.println("total: " + i + " chunk size: " + chunck.size() + " index: " + index + " checkpoint: " + checkpoint);
-            calculate(chunck);
-            checkpoint = index + 1;            
+    
+    private void createChunk(){
+        while(! queue.isEmpty()){
+            List<Long> partialSums = new LinkedList<>();
+            for(int i = 0; i<950; i++){
+                Long n = queue.poll();
+                if(n!=null){
+                    partialSums.add(n);
+                } else break;
+            }
+            calculate(new ArrayList<>(partialSums));        
         }
     }
     
     private void sumUp() {        
-        while(! futureDeque.isEmpty() || ! es.isTerminated()){
-            try {
-                if(! futureDeque.isEmpty()){
-                    count.set(count.get() + futureDeque.poll().get());
-                }
-            } catch (InterruptedException ex) {
-                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (ExecutionException ex) {
-                Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+        try {
+            while(! futureDeque.isEmpty()){
+                count.set(count.get() + futureDeque.poll().get());
             }
-        }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ExecutionException ex) {
+            Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
+        }                
     }
     
     private void calculate(List<Long> list) {                
         futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
     }
     
+    int lastIndex = 0;
     private void adjustRps(){
-        int indexAtStart = 0;
-        int indexAtEnd = DEFAULT_RPS;
-        while(true) {        
-            indexAtStart = index;
+        if(index == lastIndex){
+            ses.shutdown();
+            es.shutdown();                    
             try {
-                Thread.sleep(1000);
+                es.awaitTermination(1, TimeUnit.HOURS);
             } catch (InterruptedException ex) {
                 Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            indexAtEnd = index; 
-            if(indexAtEnd - indexAtStart == 0) {
-                idleTime++;
-            } else {
-                idleTime = 0;
-            }
-            if(idleTime > 5) {                                
-                try {                    
-                    ses.shutdown();
-                    es.shutdown();                    
-                    es.awaitTermination(1, TimeUnit.HOURS);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                break;
             }            
         }
+        lastIndex = index;
     }
 }
