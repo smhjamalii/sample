@@ -14,14 +14,8 @@ public class ExampleResource {
     
     @POST    
     public Response add(String number) {
-        try{
-            number = number.replaceAll("[^0-9]", "");
-            counterSingleton.add(Long.valueOf(number.trim()));
-            return Response.ok().build();
-        } catch(Exception e) {
-            // halle boro
-            return Response.ok().build();
-        }
+        counterSingleton.add(number);
+        return Response.ok().build();
     }
 
     @GET

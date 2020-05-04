@@ -29,7 +29,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
     private static final int DEFAULT_RPS = 100;         
     private AtomicLong count;    
     private int checkpoint = 0;
-    private ConcurrentLinkedQueue<Long> queue;
+    private ConcurrentLinkedQueue<String> queue;
     private LinkedBlockingDeque<Future<Long>> futureDeque;    
     private long idleTime = 0;
     private ExecutorService es;
@@ -44,25 +44,25 @@ public class CounterSingletonWithThreadPool implements Serializable {
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
         queue = new ConcurrentLinkedQueue<>();        
-        ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 1000, TimeUnit.MILLISECONDS);
-        ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 1050, TimeUnit.MILLISECONDS);        
-        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 3000, TimeUnit.MILLISECONDS);                
+        ses.scheduleWithFixedDelay(() -> createChunk(), 1000, 300, TimeUnit.MILLISECONDS);
+        ses.scheduleWithFixedDelay(() -> sumUp(), 1050, 600, TimeUnit.MILLISECONDS);        
+        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 10000, TimeUnit.MILLISECONDS);                
     }   
     
     public Long getCount(){         
         return count.get();        
     }        
     
-    public void add(Long number){
+    public void add(String number){
         queue.offer(number);        
         index++;
     }
     
-    private void createChunk(){
-        while(! queue.isEmpty()){
-            List<Long> partialSums = new LinkedList<>();
+    private void createChunk(){        
+        while(! queue.isEmpty()){            
+            List<String> partialSums = new LinkedList<>();
             for(int i = 0; i<950; i++){
-                Long n = queue.poll();
+                String n = queue.poll();
                 if(n!=null){
                     partialSums.add(n);
                 } else break;
@@ -71,9 +71,9 @@ public class CounterSingletonWithThreadPool implements Serializable {
         }
     }
     
-    private void sumUp() {        
+    private void sumUp() {                
         try {
-            while(! futureDeque.isEmpty()){
+            while(! futureDeque.isEmpty()){                
                 count.set(count.get() + futureDeque.poll().get());
             }
         } catch (InterruptedException ex) {
@@ -83,7 +83,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
         }                
     }
     
-    private void calculate(List<Long> list) {                
+    private void calculate(List<String> list) {                
         futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
     }
     

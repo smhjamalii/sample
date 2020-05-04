@@ -7,6 +7,8 @@ package org.acme;
 
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
+//import java.util.regex.Pattern;
 
 /**
  *
@@ -14,25 +16,30 @@ import java.util.concurrent.Callable;
  */
 public class CallableCalculator implements Callable<Long> {
 
-    private List<Long> numbers;        
+    private List<String> numbers;                    
     
-    public CallableCalculator(List<Long> numbers) {
-        this.numbers = numbers;        
+    public CallableCalculator(List<String> numbers) {
+        this.numbers = numbers;          
     }
                     
     @Override
     public Long call() throws Exception {        
-        if(numbers != null && ! numbers.isEmpty()){                                    
-            return numbers.stream().parallel().reduce(0L, Long::sum);
-            //return numbers.stream().reduce(0L, Long::sum);
-//            Long count = 0L;
-//            for(Long num : numbers){
-//                count += num;
-//            }
-//            return count;
+        if(numbers != null && ! numbers.isEmpty()){                                                
+            return numbers.stream().parallel().collect(Collectors.summingLong(number -> parseLong(number)));            
         } else {
             return 0L;
         }
+    }
+    
+    private Long parseLong(String s){
+        char[] chars = s.toCharArray();
+        StringBuilder number = new StringBuilder();
+        for(char ch : chars){
+            if(Character.isDigit(ch) || ch == '-'){
+                number.append(ch);
+            }
+        }        
+        return Long.parseLong(number.toString());
     }
     
 }
