@@ -44,7 +44,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
         queue = new ConcurrentLinkedQueue<>();        
-        ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 50, TimeUnit.MILLISECONDS);
+        ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 100, TimeUnit.MILLISECONDS);
         ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
         ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 10000, TimeUnit.MILLISECONDS);                
     }   
@@ -65,10 +65,10 @@ public class CounterSingletonWithThreadPool implements Serializable {
     
     int chunkIndex;    
     private void finalCalculation(){                                        
-        if(chunkIndex == index && chunk != null && chunk.size() > 0) {
+        if(chunkIndex == index && chunk.size() > 0) {
             System.out.println("Final Calculation is done.");
             calculate(new ArrayList<>(chunk));
-            chunk = null;            
+            chunk = new LinkedList<>();
         }                
         chunkIndex = index;                
     }
