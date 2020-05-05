@@ -1,1 +1,1 @@
-FROM smhjamalii/soalpeach-countme:0.1.1
+FROM smhjamalii/soalpeach-countme:0.1.2
