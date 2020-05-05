@@ -25,8 +25,7 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class CounterSingletonWithThreadPool implements Serializable {
-    
-    private static final int DEFAULT_RPS = 100;         
+        
     private AtomicLong count;    
     private int checkpoint = 0;
     private ConcurrentLinkedQueue<String> queue;
@@ -39,14 +38,14 @@ public class CounterSingletonWithThreadPool implements Serializable {
     public CounterSingletonWithThreadPool() {
         
         es = Executors.newFixedThreadPool(2);        
-        ses = Executors.newScheduledThreadPool(4);                
+        ses = Executors.newScheduledThreadPool(6);                
         
         count = new AtomicLong(0L);                      
         futureDeque = new LinkedBlockingDeque<>();
         queue = new ConcurrentLinkedQueue<>();        
         ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 100, TimeUnit.MILLISECONDS);
         ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
-        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 10000, TimeUnit.MILLISECONDS);                
+        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 1000, TimeUnit.MILLISECONDS);                
     }   
     
     public Long getCount(){         
@@ -54,6 +53,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
     }        
     
     List<String> chunk = new LinkedList<>();    
+    
     public void add(String number){
         chunk.add(number);        
         index++;        
@@ -66,7 +66,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
     int chunkIndex;    
     private void finalCalculation(){                                        
         if(chunkIndex == index && chunk.size() > 0) {
-            System.out.println("Final Calculation is done.");
+            //System.out.println("Final Calculation is done.");
             calculate(new ArrayList<>(chunk));
             chunk = new LinkedList<>();
         }                
