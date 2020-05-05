@@ -23,7 +23,7 @@ import javax.enterprise.context.ApplicationScoped;
  *
  * @author mohammad
  */
-@ApplicationScoped
+//@ApplicationScoped
 public class CounterSingletonWithThreadPool implements Serializable {
         
     private AtomicLong count;    
@@ -37,15 +37,15 @@ public class CounterSingletonWithThreadPool implements Serializable {
     
     public CounterSingletonWithThreadPool() {
         
-        es = Executors.newFixedThreadPool(2);        
-        ses = Executors.newScheduledThreadPool(6);                
+        //es = Executors.newFixedThreadPool(2);        
+        //ses = Executors.newScheduledThreadPool(6);                
         
-        count = new AtomicLong(0L);                      
-        futureDeque = new LinkedBlockingDeque<>();
-        queue = new ConcurrentLinkedQueue<>();        
-        ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 100, TimeUnit.MILLISECONDS);
-        ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
-        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 1000, TimeUnit.MILLISECONDS);                
+        //count = new AtomicLong(0L);                      
+        //futureDeque = new LinkedBlockingDeque<>();
+        //queue = new ConcurrentLinkedQueue<>();        
+        //ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 100, TimeUnit.MILLISECONDS);
+        //ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
+        //ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 1000, TimeUnit.MILLISECONDS);                
     }   
     
     public Long getCount(){         

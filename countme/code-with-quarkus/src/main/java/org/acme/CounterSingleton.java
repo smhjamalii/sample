@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped;
  *
  * @author mohammad
  */
-@ApplicationScoped
+//@ApplicationScoped
 public class CounterSingleton implements Serializable {
     
     private static final Long DEFAULT_RPS = 100L;
@@ -21,9 +21,9 @@ public class CounterSingleton implements Serializable {
     private long rps = DEFAULT_RPS;
     
     public CounterSingleton() {
-        count = 0L;
-        queue = new LinkedBlockingQueue<>();
-        new Thread(() -> adjustRps()).start();
+        //count = 0L;
+        //queue = new LinkedBlockingQueue<>();
+        //new Thread(() -> adjustRps()).start();
     }   
     
     public Long getCount(){        
