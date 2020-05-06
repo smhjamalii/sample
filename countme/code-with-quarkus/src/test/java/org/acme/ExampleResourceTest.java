@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-@QuarkusTest
+//@QuarkusTest
 public class ExampleResourceTest {
 
-    @Test    
+    //@Test    
     public void add() {       
         
         for(int i = 0; i < 10000; i++){
@@ -26,7 +26,7 @@ public class ExampleResourceTest {
         
     }
 
-    @Test    
+    //@Test    
     public void getCount() {
         given()
           .when().get("/count")
