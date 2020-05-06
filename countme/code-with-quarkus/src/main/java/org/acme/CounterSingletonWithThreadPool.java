@@ -32,27 +32,28 @@ public class CounterSingletonWithThreadPool implements Serializable {
     private LinkedBlockingDeque<Future<Long>> futureDeque;    
     private long idleTime = 0;
     private ExecutorService es;
-    private ScheduledExecutorService ses;      
+    private ScheduledExecutorService ses;
     private volatile int index;
+    private List<String> chunk;
     
     public CounterSingletonWithThreadPool() {
         
-        //es = Executors.newFixedThreadPool(2);        
-        //ses = Executors.newScheduledThreadPool(6);                
+        es = Executors.newFixedThreadPool(1);        
+        ses = Executors.newScheduledThreadPool(2);                
         
-        //count = new AtomicLong(0L);                      
-        //futureDeque = new LinkedBlockingDeque<>();
-        //queue = new ConcurrentLinkedQueue<>();        
-        //ses.scheduleWithFixedDelay(() -> finalCalculation(), 1000, 100, TimeUnit.MILLISECONDS);
-        //ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
-        //ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 1000, TimeUnit.MILLISECONDS);                
+        count = new AtomicLong(0L);                      
+        futureDeque = new LinkedBlockingDeque<>();
+        queue = new ConcurrentLinkedQueue<>();        
+        ses.scheduleWithFixedDelay(() -> finalCalculation(), 2000, 200, TimeUnit.MILLISECONDS);
+        ses.scheduleWithFixedDelay(() -> sumUp(), 100, 10, TimeUnit.MILLISECONDS);        
+        ses.scheduleWithFixedDelay(() -> adjustRps(), 1050, 1000, TimeUnit.MILLISECONDS);                
+        
+        chunk = new LinkedList<>();    
     }   
     
     public Long getCount(){         
         return count.get();        
-    }        
-    
-    List<String> chunk = new LinkedList<>();    
+    }                
     
     public void add(String number){
         chunk.add(number);        
@@ -61,7 +62,12 @@ public class CounterSingletonWithThreadPool implements Serializable {
             calculate(new ArrayList<>(chunk));
             chunk = new LinkedList<>();
         }
+        System.out.println("Index: " + index + " Count: " + count.get() + " Chunk Size: " + chunk.size());
     }
+        
+    private void calculate(List<String> list) {                                
+        futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
+    }    
     
     int chunkIndex;    
     private void finalCalculation(){                                        
@@ -85,14 +91,7 @@ public class CounterSingletonWithThreadPool implements Serializable {
                 Logger.getLogger(CounterSingletonWithThreadPool.class.getName()).log(Level.SEVERE, null, ex);
             }                
         }
-    }
-    
-    int calculateRunCount = 0;    
-    private void calculate(List<String> list) {                
-        calculateRunCount++;
-        //System.out.println("Calc: " + calculateRunCount);
-        futureDeque.offer((Future<Long>) es.<Long>submit(new CallableCalculator(list)));
-    }
+    }   
     
     int lastIndex = 0;
     private void adjustRps(){

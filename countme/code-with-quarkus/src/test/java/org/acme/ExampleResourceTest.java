@@ -16,25 +16,13 @@ public class ExampleResourceTest {
               .body("1")          
               .post("/");
         }
-        
-        for(int i = 0; i < 10000; i++){
-            given()                        
-              .body("1")          
-              .post("/");                            
-        }        
-                        
-            given()                        
-              .body("1 0")          
-              .post("/")                
-              .then()
-                 .statusCode(200)
-                 .body(is(""));                   
+                              
             
         given()
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("20010"));        
+             .body(is("10000"));        
         
     }
 
@@ -44,7 +32,7 @@ public class ExampleResourceTest {
           .when().get("/count")
           .then()
              .statusCode(200)
-             .body(is("20010"));
+             .body(is("10000"));
     }    
     
 }

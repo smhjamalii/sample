@@ -1,43 +1,39 @@
 package org.acme;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.stream.LongStream;
 import javax.enterprise.context.ApplicationScoped;
 
-/**
- *
- * @author mohammad
- */
 @ApplicationScoped
 public class CounterSingletonImmediateSum implements Serializable {
-        
-    private AtomicLong count;    
+            
+    private ScheduledExecutorService ses;
+    private AtomicLongArray numbers = new AtomicLongArray(5_000_000);
+    private int index = 0;       
+    private int exIndex = 0;
+    private Long count = 0L;
     
-    public CounterSingletonImmediateSum() {                     
-        count = new AtomicLong(0L);                                    
-    }   
+    public CounterSingletonImmediateSum (){
+        ses = Executors.newScheduledThreadPool(1);
+        ses.scheduleWithFixedDelay(() -> calculate(), 500, 5, TimeUnit.MILLISECONDS);
+    }
     
-    public Long getCount(){         
-        return count.get();        
+    private void calculate(){
+        if(exIndex<=index){
+            count += numbers.get(exIndex++);
+        }
+    }
+    
+    public Long getCount(){                 
+        return this.count;
     }                
     
     public void add(String number){
-        count.set(count.get() + Long.valueOf(parseLong(number)));
+        numbers.addAndGet(index++, parseLong(number));        
     }
     
     private Long parseLong(String s){

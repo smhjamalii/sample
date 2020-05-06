@@ -25,7 +25,7 @@ public class CallableCalculator implements Callable<Long> {
     @Override
     public Long call() throws Exception {        
         if(numbers != null && ! numbers.isEmpty()){                                                
-            return numbers.stream().parallel().collect(Collectors.summingLong(number -> parseLong(number)));            
+            return numbers.stream().collect(Collectors.summingLong(number -> parseLong(number)));            
         } else {
             return 0L;
         }
