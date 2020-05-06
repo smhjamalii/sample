@@ -1,10 +1,12 @@
 package org.acme;
 
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Verticle;
 import io.vertx.core.Vertx;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -14,44 +16,19 @@ import javax.inject.Inject;
  * @author mohammad
  */
 //@ApplicationScoped
-public class CounterSingletoneWithVertx implements Verticle {
+public class CounterSingletoneWithVertx extends AbstractVerticle {
+
+    private AtomicLong count;
+    private Long number;
     
-    //@Inject Vertx vertx;
+    public CounterSingletoneWithVertx(AtomicLong count, Long number) {
+        this.count = count;
+        this.number = number;
+    }        
     
-//    @PostConstruct
-//    public void init(){
-//        vertx.deployVerticle(MyVerticle.class.getName(), ar -> { });
-//        vertx.deployVerticle(new MyVerticle(), ar -> { });        
-//    }
-
     @Override
-    public Vertx getVertx() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void start() throws Exception {
+        this.count.set(this.count.get() + number);
     }
-
-    @Override
-    public void init(Vertx vertx, Context cntxt) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void start(Future<Void> future) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        Verticle.super.start(startPromise); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void stop(Future<Void> future) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void stop(Promise<Void> stopPromise) throws Exception {
-        Verticle.super.stop(stopPromise); //To change body of generated methods, choose Tools | Templates.
-    }
-    
+ 
 }

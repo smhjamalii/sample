@@ -11,7 +11,7 @@ expected_result = test_rate * test_duration * payload
 
 response = requests.get(f'http://localhost:8080/count')
 if int(response.text) != expected_result:
-    print('FAILED')
+    print('FAILED', response.text, expected_result)
 else:
     print('SUCCEEED')
 

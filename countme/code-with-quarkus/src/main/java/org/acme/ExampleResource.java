@@ -1,37 +1,28 @@
 package org.acme;
 
-import io.quarkus.vertx.web.Route;
-import io.quarkus.vertx.web.RoutingExchange;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.RoutingContext;
-import javax.enterprise.context.ApplicationScoped;
+import io.smallrye.mutiny.Uni;
 import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 
-//@Path("/")    
-@ApplicationScoped
+@Path("/")    
 public class ExampleResource {   
     
     @Inject
-    CounterSingletonImmediateSum counterSingleton;        
+    CounterSingletonImmediateSum counterSingleton;           
     
-    @Inject
-    Vertx vertx;
-    
-    //@POST   
-    @Route(path = "/", methods = HttpMethod.POST)
-    public void add(RoutingContext rc) {
-        counterSingleton.add(rc.getBodyAsString());
-//        return Uni.createFrom().item(()-> Response.ok().build());
-        rc.response().end();
+    @POST
+    public Uni<Response> add(String number) {
+        counterSingleton.add(number);
+        return Uni.createFrom().item(()-> Response.ok().build());        
     }
 
-    //@GET
-    //@Path("count")    
-    @Route(path = "/count", methods = HttpMethod.GET)
-    public void getCount(RoutingExchange ex) {        
-        //return Uni.createFrom().item(()-> String.valueOf(counterSingleton.getCount()));
-        ex.ok(String.valueOf(counterSingleton.getCount()));
+    @GET
+    @Path("count")        
+    public Uni<String> getCount() {        
+        return Uni.createFrom().item(()-> String.valueOf(counterSingleton.getCount()));        
     }
     
 }

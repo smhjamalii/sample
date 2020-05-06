@@ -1,39 +1,33 @@
 package org.acme;
 
+import io.vertx.core.Vertx;
 import java.io.Serializable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.LongStream;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicLong;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 @ApplicationScoped
 public class CounterSingletonImmediateSum implements Serializable {
-            
-    private ScheduledExecutorService ses;
-    private AtomicLongArray numbers = new AtomicLongArray(5_000_000);
-    private int index = 0;       
-    private int exIndex = 0;
-    private Long count = 0L;
+
+    @Inject
+    Vertx vertx;    
     
-    public CounterSingletonImmediateSum (){
-        ses = Executors.newScheduledThreadPool(1);
-        ses.scheduleWithFixedDelay(() -> calculate(), 500, 5, TimeUnit.MILLISECONDS);
-    }
-    
-    private void calculate(){
-        if(exIndex<=index){
-            count += numbers.get(exIndex++);
-        }
-    }
+    private ConcurrentLinkedDeque<Long> deque;
+    private int index = 0;           
+    private AtomicLong count;
+
+    public CounterSingletonImmediateSum() {
+        this.deque = new ConcurrentLinkedDeque<>();
+        this.count = new AtomicLong(0L);
+    }        
     
     public Long getCount(){                 
-        return this.count;
+        return this.count.get();
     }                
     
-    public void add(String number){
-        numbers.addAndGet(index++, parseLong(number));        
+    public void add(String number){        
+        this.count.addAndGet(parseLong(number));
     }
     
     private Long parseLong(String s){
